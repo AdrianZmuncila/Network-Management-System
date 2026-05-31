@@ -1,0 +1,39 @@
+groups:
+  - name: network_alerts
+    rules:
+
+      - alert: HighNetworkTraffic
+        expr: rate(node_network_receive_bytes_total{device="eth0"}[1m]) > 10000000
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "High network traffic detected"
+          description: "Traffic on eth0 exceeds 10MB/s"
+
+      - alert: AnomalyDetected
+        expr: ml_anomaly_score > 0.7
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "ML anomaly detected!"
+          description: "Anomaly score is currently: {{ $value }}"
+
+      - alert: HighCPU
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[2m])) * 100) > 80
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80%"
+
+      - alert: ServerDown
+        expr: up == 0
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service unavailable"
+          description: "The job {{ $labels.job }} is not responding"
