@@ -1,0 +1,126 @@
+BEFORE STARTING
+
+This project is intended for users with basic to intermediate knowledge in:
+
+Computer Networking
+VLANs
+Trunking
+Inter-VLAN Routing
+DHCP
+DNS
+ACLs
+NAT
+System Administration (SysAdmin)
+Linux command line
+Service management
+Network configuration
+Docker deployment
+Virtualization
+VirtualBox
+Virtual Machines
+Ubuntu Server
+Kali Linux
+
+The project combines networking, Linux administration, virtualization, monitoring, and troubleshooting. A basic understanding of these technologies is recommended before deployment.
+
+IMPORTANT NOTES AND TROUBLESHOOTING
+
+1. Ubuntu Server Network Configuration
+
+* Ubuntu Server must have the correct network adapter connected in VirtualBox.
+* Verify the interface name using:
+  ip a
+* If the interface state is DOWN, check the VirtualBox adapter settings.
+
+2. Docker Services
+
+* Before accessing Grafana or Prometheus, start the containers:
+  docker compose up -d
+* Verify running containers:
+  docker ps
+
+3. Grafana Access
+
+* Grafana is available on:
+  http://SERVER_IP:3000
+* If Grafana is unreachable, verify that the Docker containers are running.
+
+4. DHCP Issues
+
+* PCs obtain IP addresses automatically from the Ubuntu DHCP server.
+* If a client does not receive an IP address:
+  dhcp
+* Verify:
+
+  * DHCP service status
+  * VLAN configuration
+  * ip helper-address on R1
+
+5. DNS Resolution
+
+* If internet access works but domain names cannot be resolved:
+  check /etc/resolv.conf
+* Example:
+  nameserver 8.8.8.8
+
+6. Kali Linux Configuration
+
+* After reboot, Kali may lose temporary network settings.
+* Reconfigure:
+
+  * IP address
+  * Gateway
+  * DNS
+
+7. Inter-VLAN Routing
+
+* Verify:
+
+  * Router subinterfaces
+  * 802.1Q encapsulation
+  * Trunk links
+  * Access VLAN assignments
+
+8. GNS3 Notes
+
+* Changes to VM adapters may require:
+
+  * Stopping the VM
+  * Removing links
+  * Reconnecting interfaces
+* Keyboard focus may occasionally be lost inside GNS3 consoles.
+
+9. Traffic Generation
+
+* Start iperf3 server on Ubuntu:
+  iperf3 -s
+* Generate traffic from Kali:
+  iperf3 -c SERVER_IP -p 5201 -P 10 -t 120
+
+10. Prometheus and Grafana
+
+* If metrics are missing:
+
+  * Verify Prometheus targets are UP
+  * Verify Node Exporter is running
+  * Refresh Grafana dashboards
+
+11. Common Mistakes
+
+* Docker containers not started
+* Wrong VLAN assignment
+* Missing default gateway
+* Incorrect DNS server
+* VM network adapter disconnected
+* Trunk port not configured
+* DHCP service stopped
+
+12. Recommended Startup Order
+13. Start Ubuntu Server VM
+14. Start Docker containers
+15. Start GNS3 topology
+16. Obtain DHCP addresses on clients
+17. Verify connectivity
+18. Open Grafana and Prometheus
+19. Generate test traffic with iperf3
+
