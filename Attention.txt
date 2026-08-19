@@ -39,6 +39,8 @@ IMPORTANT NOTES AND TROUBLESHOOTING
 * Verify running containers:
   docker ps
 
+!!!! Alerts appear after the default values ​​in docker, if no alert appears, change the threshold values ​​in docker to a lower value  . !!!
+
 3. Grafana Access
 
 * Grafana is available on:
