@@ -97,8 +97,7 @@ iperf3 -s
 
 Client:
 
-iperf3 -c 192.168.40.10 -P 10 -t 120
-
+iperf3 -c 192.168.40.10 -p 5201 -P 10 -t 120
 This generated observable network spikes in Grafana dashboards.
 
 Technologies Used
