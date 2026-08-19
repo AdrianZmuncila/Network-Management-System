@@ -1,64 +1,39 @@
-version: '3.8'
-
-networks:
-  nms_net:
-    driver: bridge
-
-volumes:
-  prometheus_data:
-  grafana_data:
+version: "3.8"
 
 services:
-
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
-    restart: unless-stopped
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus:/etc/prometheus
-      - prometheus_data:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alerts.yml:/etc/prometheus/alerts.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.retention.time=30d'
     networks:
-      - nms_net
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
+      - monitoring
     restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin123
-      - GF_USERS_ALLOW_SIGN_UP=false
-    networks:
-      - nms_net
 
   alertmanager:
     image: prom/alertmanager:latest
     container_name: alertmanager
-    restart: unless-stopped
     ports:
       - "9093:9093"
     volumes:
-      - ./alertmanager:/etc/alertmanager
-    command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
     networks:
-      - nms_net
+      - monitoring
+    restart: unless-stopped
 
+  # IMPORTANT: Use host networking so the container can access
+  # the real host network interface (enp0s3) instead of the
+  # container's internal virtual network interface.
   node_exporter:
     image: prom/node-exporter:latest
     container_name: node_exporter
-    restart: unless-stopped
-    ports:
-      - "9100:9100"
+    network_mode: host
+    pid: host
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -66,18 +41,42 @@ services:
     command:
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
+      - '--path.rootfs=/rootfs'
       - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    networks:
-      - nms_net
+    restart: unless-stopped
 
   ml_detector:
-    image: python:3.11-slim
+    build: ./ml_detector
     container_name: ml_detector
-    restart: unless-stopped
-    volumes:
-      - ./ml:/app
-    working_dir: /app
-    command: >
-      sh -c "pip install -r requirements.txt -q && python detector.py"
+    ports:
+      - "8000:8000"
     networks:
-      - nms_net
+      - monitoring
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - grafana_data:/var/lib/grafana
+    networks:
+      - monitoring
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+networks:
+  monitoring:
+    driver: bridge
+
+volumes:
+  grafana_data:
